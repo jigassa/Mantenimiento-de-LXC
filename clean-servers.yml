@@ -1,0 +1,50 @@
+---
+- hosts: servidores
+  become: yes
+  tasks:
+    # Limpiar paquetes no necesarios
+    - name: Autoremove paquetes no necesarios
+      apt:
+        autoremove: yes
+        autoclean: yes
+      tags: cleanup
+
+    # Limpiar el caché de APT
+    - name: Limpiar el caché de APT
+      apt:
+        autoclean: yes
+      tags: cleanup
+
+    # Limpiar archivos temporales
+    - name: Limpiar archivos temporales
+      file:
+        path: /tmp
+        state: directory
+        mode: '1777'
+        owner: root
+        group: root
+        recurse: yes
+      tags: cleanup
+
+    # Eliminar imágenes de Docker que no están en uso
+    - name: Eliminar contenedores Docker detenidos
+      command: docker container prune -f
+      ignore_errors: yes
+      tags: docker_cleanup
+
+    - name: Eliminar imágenes Docker no usadas
+      command: docker image prune -a -f
+      ignore_errors: yes
+      tags: docker_cleanup
+
+    # Eliminar volúmenes Docker que no están en uso
+    - name: Eliminar volúmenes Docker no usados
+      command: docker volume prune -f
+      ignore_errors: yes
+      tags: docker_cleanup
+
+    # Eliminar redes Docker que no están en uso
+    - name: Eliminar redes Docker no usadas
+      command: docker network prune -f
+      ignore_errors: yes
+      tags: docker_cleanup

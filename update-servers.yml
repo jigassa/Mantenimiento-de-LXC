@@ -1,0 +1,13 @@
+---
+- hosts: servidores
+  become: yes
+  tasks:
+    - name: Actualizar el caché de APT
+      apt:
+        update_cache: yes
+
+    - name: Actualizar los paquetes
+      apt:
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes

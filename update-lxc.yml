@@ -1,0 +1,25 @@
+---
+- hosts: servidores
+  become: yes
+  tasks:
+    - name: Obtener la lista de contenedores LXC en ejecución en cada servidor
+      shell: |
+        pct list | grep running | awk '{print $1}'
+      register: lxc_containers
+      ignore_errors: yes
+
+    - name: Mostrar la lista de contenedores LXC en ejecución
+      debug:
+        msg: "Los contenedores LXC en ejecución en {{ inventory_hostname }} son: {{ lxc_containers.stdout_lines }}"
+
+    - name: Actualizar cada LXC encendido
+      shell: |
+        pct exec {{ item }} -- bash -c "apt update && apt upgrade -y"
+      loop: "{{ lxc_containers.stdout_lines }}"
+      when: lxc_containers.stdout_lines | length > 0
+      ignore_errors: yes
+
+    - name: Mostrar mensaje final de éxito
+      debug:
+        msg: "Actualización completada para los contenedores LXC en {{ inventory_hostname }}"
+      when: lxc_containers.stdout_lines | length > 0
